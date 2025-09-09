@@ -20,7 +20,12 @@ import "./jobs/updateOverdueInvoices.js"; // 👈 import the cron job
 
 
 // Middlewares
-app.use(cors());
+// app.use(cors());
+const allowedOrigin = 'https://invoice-frontend-rxzv.vercel.app';
+app.use(cors({
+  origin: allowedOrigin,
+  credentials: true, // If you're using cookies or auth headers
+}));
 app.use(express.json());
 app.use(cookieParser());
 app.use(morgan("dev"));
