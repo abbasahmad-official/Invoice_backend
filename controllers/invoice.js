@@ -1,4 +1,5 @@
 import Invoice from "../models/Invoice.js";
+import nodemailer from "nodemailer";
 
 
 // create invoice
@@ -11,6 +12,81 @@ export const create = async (req, res) => {
         res.status(400).json({ error: error.message })
     }
 }
+
+//
+export const createSend = async (req, res) => {
+    try {
+        const invoice = new Invoice(req.body);
+        // await invoice.save();
+          const invoiceLink = `https://invoice-frontend-rxzv.vercel.app/pay/invoice/${invoice.id}`;
+        await invoice.populate("client", "email name"); // <- this loads client email only
+      console.log(invoice.client.email);
+        const d  = await sendInvoiceLinkToUser(invoice.client.email, invoiceLink);
+        console.log(d)
+        res.status(200).json(invoice);
+    } catch (error) {
+        res.status(400).json({ error: error.message })
+    }
+}
+export const sendEmail = async (req, res) => {
+    try {
+        const invoice = req.body;
+        // await invoice.save();
+          const invoiceLink = `https://invoice-frontend-rxzv.vercel.app/pay/invoice/${invoice.id}`;
+        const d  = await sendInvoiceLinkToUser(invoice.client.email, invoiceLink);
+        console.log(d)
+        res.status(200).json(invoice);
+    } catch (error) {
+        res.status(400).json({ error: error.message })
+    }
+}
+
+const transporter = nodemailer.createTransport({
+  service: 'gmail',
+  auth: {
+    user: 'abbasahmad8032@gmail.com',
+    pass: 'ksibzdtzfubpaqcq' // NOT your Gmail password — see below!
+  }
+});
+
+async function sendInvoiceLinkToUser(email, invoiceLink) {
+try {
+  await transporter.sendMail({
+    from: '"Invoice System" <abbasahmad8032@gmail.com>', // Sender name & address
+    to: email,                                           // Recipient's email
+    subject: 'Your Invoice is Ready for Payment',
+    text: `Hello, your invoice is ready. Please view and make the payment here: ${invoiceLink}`, // Fallback plain text
+    html: `
+      <p>Hello,</p>
+      <p>Your invoice is ready and requires payment. Please view it here:</p>
+      <p>
+        <a href="${invoiceLink}" style="
+          display: inline-block;
+          padding: 10px 20px;
+          background-color: #007BFF;
+          color: #ffffff;
+          text-decoration: none;
+          border-radius: 5px;
+          font-weight: bold;
+        ">
+          View and Pay Invoice
+        </a>
+      </p>
+      <p>Thank you for your prompt attention to this matter.</p>
+    `
+  });
+} catch (error) {
+  console.error('Error sending email:', error);
+}
+
+}
+
+
+
+
+
+
+//
 
 // get all invoices
 export const list = async (req, res) => {

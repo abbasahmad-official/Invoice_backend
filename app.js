@@ -4,6 +4,8 @@ import dotenv from "dotenv";
 import cors from "cors";
 import cookieParser from "cookie-parser";
 import morgan from "morgan";
+import nodemailer from "nodemailer";
+
 
 dotenv.config();
 const app = express();
