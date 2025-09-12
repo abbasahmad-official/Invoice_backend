@@ -17,7 +17,7 @@ export const create = async (req, res) => {
 export const createSend = async (req, res) => {
     try {
         const invoice = new Invoice(req.body);
-        // await invoice.save();
+        await invoice.save();
           const invoiceLink = `https://invoice-frontend-rxzv.vercel.app/pay/invoice/${invoice.id}`;
         await invoice.populate("client", "email name"); // <- this loads client email only
       console.log(invoice.client.email);
