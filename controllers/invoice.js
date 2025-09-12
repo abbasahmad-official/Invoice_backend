@@ -1,6 +1,9 @@
 import Invoice from "../models/Invoice.js";
 import nodemailer from "nodemailer";
-
+import Stripe from "stripe";
+import dotenv from "dotenv";
+dotenv.config();
+const stripe =  Stripe(process.env.STRIPE_SECRET_KEY);
 
 // create invoice
 export const create = async (req, res) => {
@@ -268,6 +271,15 @@ export const update = async (req, res) => {
         res.status(400).json({ error: error.message });
     }
 }
+export const updateForUserPay = async (req, res) => {
+    try {
+        const invoiceId = req.params.invoiceId
+        const updated = await Invoice.findByIdAndUpdate(invoiceId, req.body, { new: true });
+        res.status(200).json(updated);
+    } catch (error) {
+        res.status(400).json({ error: error.message });
+    }
+}
 
 // delete invoice
 export const remove = async (req, res) => {
@@ -323,3 +335,21 @@ export const listSearch = async (req, res) => {
         return res.status(500).json({ error: "Failed to perform search" });
     }
 };
+
+export const createPaymentIntent = async (req, res) => {
+const { amount } = req.body;
+  console.log(amount);
+
+  try {
+    const paymentIntent = await stripe.paymentIntents.create({
+      amount,
+      currency: 'usd',
+      automatic_payment_methods: { enabled: true },
+    });
+
+    res.send({ clientSecret: paymentIntent.client_secret });
+  } catch (error) {
+    console.error('Stripe error:', error);
+    res.status(500).json({ error: error.message });
+  }
+}
