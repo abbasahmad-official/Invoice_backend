@@ -22,12 +22,28 @@ import "./jobs/updateOverdueInvoices.js"; // 👈 import the cron job
 
 
 // Middlewares
-// app.use(cors());
-const allowedOrigin = 'https://invoice-frontend-rxzv.vercel.app';
+const allowedOrigins = [
+  'https://invoice-frontend-rxzv.vercel.app',
+  'http://localhost:5173', // Vite dev server
+  'https://invoice-frontend-hfxz.vercel.app'
+];
+
 app.use(cors({
-  origin: allowedOrigin,
-  credentials: true, // If you're using cookies or auth headers
+  origin: function(origin, callback) {
+    // allow requests with no origin (like Postman, curl, or mobile apps)
+    if (!origin) return callback(null, true);
+
+    if (allowedOrigins.includes(origin)) {
+      // origin is allowed
+      callback(null, true);
+    } else {
+      // origin not allowed
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true, // for cookies or auth headers
 }));
+
 app.use(express.json());
 app.use(cookieParser());
 app.use(morgan("dev"));
