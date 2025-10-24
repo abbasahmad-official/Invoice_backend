@@ -5,7 +5,7 @@ import cors from "cors";
 import cookieParser from "cookie-parser";
 import morgan from "morgan";
 import nodemailer from "nodemailer";
-import { ensureSuperAdmin } from "./utils/ensureSuperAdmin";
+import { ensureSuperAdmin } from "./utils/ensureSuperAdmin.js";
 
 
 
