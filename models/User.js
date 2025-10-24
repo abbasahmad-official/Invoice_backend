@@ -1,5 +1,7 @@
 import mongoose, { Mongoose } from "mongoose";
 import bcrypt from "bcrypt"
+const { ObjectId } = mongoose.Schema;
+
 
 const userSchema = new mongoose.Schema({
     name:{
@@ -18,7 +20,10 @@ const userSchema = new mongoose.Schema({
         type: String,
         required: true
     },
-    role: { type: String, enum: ["admin", "user"], default: "user" }
+    status: { type: String, enum: ["active", "suspended"], default: "active" },
+    organization: {type:ObjectId, ref: "Org", default: null},
+    // admin: {type: ObjectId, ref: "User"},
+    role: { type: String, enum: ["admin", "user", "superAdmin"], default: "user" }
 
 }, {timestamps: true});
 

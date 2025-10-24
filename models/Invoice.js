@@ -31,8 +31,9 @@ const invoiceSchema = new mongoose.Schema({
     frequency: { type: String, enum: ["daily", "weekly", "monthly", "yearly"], default: null },
     startDate: Date,
     endDate: Date,
+    organization:{type: ObjectId, ref:"Org"},
     createdBy: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true }
-
+    
 }, { timestamps: true });
 
 // Pre-save middleware to auto-increment invoiceNumber

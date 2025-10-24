@@ -1,5 +1,5 @@
 import express from "express";
-import {listCount} from "../controllers/user.js"
+import {listByStatus, listCount, listManagers, update} from "../controllers/user.js"
 import {protect, adminOnly} from "../middleware/auth.js";
 
 const router = express.Router();
@@ -13,5 +13,8 @@ const router = express.Router();
 
 // router.get("/products", protect, list);
 router.get("/users/count", listCount);
+router.post("/user/update", update);
+router.get("/managers", listManagers);
+router.get("/managers/status/:status", protect, listByStatus);
 
 export default router;

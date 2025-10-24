@@ -5,6 +5,9 @@ import cors from "cors";
 import cookieParser from "cookie-parser";
 import morgan from "morgan";
 import nodemailer from "nodemailer";
+import { ensureSuperAdmin } from "./utils/ensureSuperAdmin.js";
+
+
 
 
 dotenv.config();
@@ -16,6 +19,7 @@ import clientRoutes from "./routes/client.js";
 import productRoutes from "./routes/product.js";
 import invoiceRoutes from "./routes/invoice.js";
 import userRoutes from "./routes/user.js";
+import orgRoutes from "./routes/org.js"
 // other imports
 import "./jobs/updateOverdueInvoices.js"; // 👈 import the cron job
 
@@ -64,7 +68,9 @@ app.use("/api", clientRoutes);
 app.use("/api", productRoutes);
 app.use("/api", invoiceRoutes);
 app.use("/api", userRoutes);
+app.use("/api", orgRoutes)
 
+ensureSuperAdmin();
 
 
 // port listen

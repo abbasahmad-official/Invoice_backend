@@ -3,7 +3,14 @@ import jwt from "jsonwebtoken";
 import expressJwt from "express-jwt";
 
 export const signup = async(req, res) => {
-    const {name, email, password} = req.body;
+  // console.log("signp")
+    const {name, email, password, organization=null, role} = req.body;
+    
+    if (role === "superAdmin") {
+    return res.status(403).json({ error: "You cannot register as a Super Admin." });
+  }
+    // console.log(req.body)
+    //  console.log("signp")
     if (!name || !email || !password) {
     return res.status(400).json({ message: "All fields are required." });
   }
@@ -14,14 +21,15 @@ export const signup = async(req, res) => {
     if (existing) {
       return res.status(400).json({ error: "Email is already registered." });
     }
-
+  
     // Create new user
-    const user = new User({ name, email, password }); // virtual setter hashes it
+    const user = new User({ name, email, password, organization }); // virtual setter hashes it
     await user.save();
 
     res.status(201).json({ message: "User registered successfully." });
   } catch (err) {
-    res.status(500).json({ error: "Server error." });
+    console.log(err.message)
+    res.status(500).json({ error: "Server error." }, );
   }
 }
 
@@ -53,7 +61,9 @@ export const signin = async(req, res) => {
         _id: user._id,
         name: user.name,
         email: user.email,
-        role: user.role
+        organization: user.organization,
+        role: user.role,
+        status: user.status
       }
     });
   } catch (err) {
@@ -65,3 +75,35 @@ export const signout = (req, res)=>{
   res.clearCookie("t");
   res.json({message: "signout success"});
 }
+
+
+export const createSuperAdmin = async (req, res) => {
+  try {
+    // Check if a Super Admin already exists
+    const existing = await User.findOne({ role: "superAdmin" });
+    if (existing) {
+      return res.status(403).json({ message: "Super Admin already exists" });
+    }
+
+    const { name, email, password } = req.body;
+
+    if (!name || !email || !password) {
+      return res.status(400).json({ message: "All fields are required." });
+    }
+
+    // Use your schema's virtual password setter — it will hash automatically
+    const superAdmin = new User({
+      name,
+      email,
+      password, // triggers the virtual setter that hashes it
+      role: "superAdmin",
+    });
+
+    await superAdmin.save();
+
+    res.status(201).json({ message: "Super Admin created successfully!" });
+  } catch (error) {
+    console.error("Error creating Super Admin:", error);
+    res.status(500).json({ error: "Server error." });
+  }
+};

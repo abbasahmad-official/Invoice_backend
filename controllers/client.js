@@ -4,10 +4,12 @@ import Client from "../models/Client.js";
 // create client
 export const create = async(req, res) => {
     try{
+        console.log(req.body)
         const client = new Client(req.body);
         await client.save();
         res.status(200).json(client);
     }catch(error){
+        console.log(error.message)
         res.status(400).json({error: error.message})
     }
 }
@@ -15,10 +17,11 @@ export const create = async(req, res) => {
 // get all clients
 export const list = async(req,res) => {
     try{
-
-        const clients = await Client.find({});
+        const {orgId, role} = req.query
+        const clients = await Client.find({organization:orgId});
         res.status(200).json(clients);
     }catch(error){
+        
         res.status(400).json({error: error.message})
     }
 }

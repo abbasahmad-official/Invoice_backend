@@ -4,6 +4,7 @@ import Product from "../models/Product.js";
 // create product
 export const create = async(req, res) => {
     try{
+        console.log(req.body)
         const product = new Product(req.body);
         await product.save();
         res.status(200).json(product);
@@ -15,8 +16,9 @@ export const create = async(req, res) => {
 // get all products
 export const list = async(req,res) => {
     try{
-
-        const products = await Product.find({});
+        const {orgId, role} = req.query
+        // console.log(orgId + role)
+        const products = await Product.find({organization: orgId});
         res.status(200).json(products);
     }catch(error){
         res.status(400).json({error: error.message})
@@ -26,6 +28,7 @@ export const list = async(req,res) => {
 export const listProduct = async(req,res) => {
     try{
         const userId = req.params.userId;
+
         const products = await Product.find({createdBy:userId});
         res.status(200).json(products);
     }catch(error){

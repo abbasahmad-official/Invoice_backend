@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
 const { ObjectId } = mongoose.Schema;
 
-const clientSchema = new mongoose.Schema({
+const orgSchema = new mongoose.Schema({
     name: {
         type: String,
         trim: true,
@@ -24,8 +24,10 @@ const clientSchema = new mongoose.Schema({
         trim: true,
         required: true
     },
-    organization:{type: ObjectId, ref:"Org"},
+    status: {
+        type: String, enum: ["active", "suspended"], default: "active"
+    },
     createdBy: { type: ObjectId, ref: "User", required: true }
 }, { timestamps: true });
 
-export default mongoose.model("Client", clientSchema);
+export default mongoose.model("Org", orgSchema);

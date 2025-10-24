@@ -94,8 +94,8 @@ try {
 // get all invoices
 export const list = async (req, res) => {
     try {
-
-        const invoices = await Invoice.find({})
+const {orgId, role} = req.query
+        const invoices = await Invoice.find({organization:orgId})
             .populate("client", "name email");
         res.status(200).json(invoices);
     } catch (error) {
