@@ -105,8 +105,8 @@ const {orgId, role} = req.query
 
 export const listPaid = async (req, res) => {
     try {
-
-        const invoices = await Invoice.find({ status: "Paid" })
+        const {orgId} = req.query
+        const invoices = await Invoice.find({ status: "Paid", organization: orgId })
 
         // .populate("client", "name email");
         res.status(200).json(invoices);
@@ -116,8 +116,8 @@ export const listPaid = async (req, res) => {
 }
 export const listPending = async (req, res) => {
     try {
-
-        const invoices = await Invoice.find({ status: "Pending" })
+        const {orgId} = req.query
+        const invoices = await Invoice.find({ status: "Pending", organization: orgId })
         // console.log(invoices);
         // .populate("client", "name email");
         return res.status(200).json(invoices);
@@ -127,8 +127,8 @@ export const listPending = async (req, res) => {
 }
 export const listOverdue = async (req, res) => {
     try {
-
-        const invoices = await Invoice.countDocuments({ status: "Overdue" })
+            const {orgId} = req.query
+        const invoices = await Invoice.countDocuments({ status: "Overdue", organization: orgId })
         // console.log(invoices);
         // .populate("client", "name email");
         return res.status(200).json(invoices);
@@ -177,7 +177,8 @@ export const listUserPending = async (req, res) => {
 
 export const listCount = async (req, res) => {
     try {
-        const count = await Invoice.countDocuments();
+        const {orgId} = req.query
+        const count = await Invoice.countDocuments({organization: orgId});
         res.status(200).json({ count });
     } catch (error) {
         res.status(400).json({ error: error.message })
@@ -198,7 +199,8 @@ export const listCountByUser = async (req, res) => {
 // get all invoices for user
 export const listLast = async (req, res) => {
     try {
-        const invoices = await Invoice.find({})
+        const {orgId} = req.query
+        const invoices = await Invoice.find({organization: orgId})
             .sort({ createdAt: -1 }) // Sort by newest
             .limit(3)                // Get only the last 3
             .populate("client", "name email");

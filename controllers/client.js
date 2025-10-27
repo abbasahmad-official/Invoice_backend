@@ -1,3 +1,4 @@
+import { param } from "express-validator";
 import Client from "../models/Client.js";
 
 
@@ -27,8 +28,9 @@ export const list = async(req,res) => {
 }
 export const listCount = async(req,res) => {
     try{
-
-        const count = await Client.countDocuments();
+        const {orgId} = req.query
+        console.log(orgId)
+        const count = await Client.countDocuments({organization: orgId});
         res.status(200).json({count});
     }catch(error){
         res.status(400).json({error: error.message})
