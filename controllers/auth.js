@@ -30,26 +30,29 @@ export const signup = async(req, res) => {
     // Create new user
     const user = new User({ name, email, password, organization ,currency:defaultCurreny?._id }); // virtual setter hashes it
     await user.save();
-    const templatePath = path.join(_dirname,"templates", "newUserEmail.html")
+
+// send mail
+
+//     const templatePath = path.join(_dirname,"templates", "newUserEmail.html")
     
-const htmlContent = await ejs.renderFile(templatePath, {
-  userName: user.name ,
-  email: user.email,
- password: user._password,
- year: new Date().getFullYear() ,
- loginLink : `${process.env.FRONTEND_URL}/login`
-})
+// const htmlContent = await ejs.renderFile(templatePath, {
+//   userName: user.name ,
+//   email: user.email,
+//  password: user._password,
+//  year: new Date().getFullYear() ,
+//  loginLink : `${process.env.FRONTEND_URL}/login`
+// })
 
-const transporter = nodemailer.createTransport({
-  service:"Gmail",
-  auth: {user: process.env.SENDER_EMAIL , pass: process.env.SENDER_EMAIL_PASS }
-})
+// const transporter = nodemailer.createTransport({
+//   service:"Gmail",
+//   auth: {user: process.env.SENDER_EMAIL , pass: process.env.SENDER_EMAIL_PASS }
+// })
 
-  await transporter.sendMail({
-    to:user.email,
-    subject:"Your Login Credentials",
-    html:htmlContent
-  })
+//   await transporter.sendMail({
+//     to:user.email,
+//     subject:"Your Login Credentials",
+//     html:htmlContent
+//   })
 
 
     res.status(201).json({ message: "User registered successfully. Credentials send to Email" });

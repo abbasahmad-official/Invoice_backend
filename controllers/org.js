@@ -42,27 +42,27 @@ export const create = async (req, res) => {
       currency: defaultCurrency._id,
     });
     // send mail
-    const _dirname = path.resolve()
+    // const _dirname = path.resolve()
 
-     const templatePath = path.join(_dirname,"templates", "newUserEmail.html")
-     const htmlContent = await ejs.renderFile(templatePath, {
-       userName: user.name ,
-       email: user.email,
-      password: user._password,
-      year: new Date().getFullYear() ,
-      loginLink : `${process.env.FRONTEND_URL}/login`
-     })
+    //  const templatePath = path.join(_dirname,"templates", "newUserEmail.html")
+    //  const htmlContent = await ejs.renderFile(templatePath, {
+    //    userName: user.name ,
+    //    email: user.email,
+    //   password: user._password,
+    //   year: new Date().getFullYear() ,
+    //   loginLink : `${process.env.FRONTEND_URL}/login`
+    //  })
 
-     const transporter = nodemailer.createTransport({
-       service:"Gmail",
-       auth: {user: process.env.SENDER_EMAIL , pass: process.env.SENDER_EMAIL_PASS }
-     })
+    //  const transporter = nodemailer.createTransport({
+    //    service:"Gmail",
+    //    auth: {user: process.env.SENDER_EMAIL , pass: process.env.SENDER_EMAIL_PASS }
+    //  })
      
-       await transporter.sendMail({
-         to:user.email,
-         subject:"Your Login Credentials",
-         html:htmlContent
-       })
+    //    await transporter.sendMail({
+    //      to:user.email,
+    //      subject:"Your Login Credentials",
+    //      html:htmlContent
+    //    })
 await user.save();
  await org.save()
 
