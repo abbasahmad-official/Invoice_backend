@@ -1,11 +1,15 @@
 import User from "../models/User.js";
 import jwt from "jsonwebtoken";
 import expressJwt from "express-jwt";
+import Currency from "../models/currency.js";
+import path from "path";
+import ejs from "ejs"
+import nodemailer from "nodemailer"
 
 export const signup = async(req, res) => {
   // console.log("signp")
     const {name, email, password, organization=null, role} = req.body;
-    
+    const _dirname = path.resolve() 
     if (role === "superAdmin") {
     return res.status(403).json({ error: "You cannot register as a Super Admin." });
   }
@@ -21,12 +25,34 @@ export const signup = async(req, res) => {
     if (existing) {
       return res.status(400).json({ error: "Email is already registered." });
     }
-  
+   const defaultCurreny = await Currency.findOne({code:"USD"})
+   console.log("currency: ", defaultCurreny)
     // Create new user
-    const user = new User({ name, email, password, organization }); // virtual setter hashes it
+    const user = new User({ name, email, password, organization ,currency:defaultCurreny?._id }); // virtual setter hashes it
     await user.save();
+    const templatePath = path.join(_dirname,"templates", "newUserEmail.html")
+    
+const htmlContent = await ejs.renderFile(templatePath, {
+  userName: user.name ,
+  email: user.email,
+ password: user._password,
+ year: new Date().getFullYear() ,
+ loginLink : `${process.env.FRONTEND_URL}/login`
+})
 
-    res.status(201).json({ message: "User registered successfully." });
+const transporter = nodemailer.createTransport({
+  service:"Gmail",
+  auth: {user: process.env.SENDER_EMAIL , pass: process.env.SENDER_EMAIL_PASS }
+})
+
+  await transporter.sendMail({
+    to:user.email,
+    subject:"Your Login Credentials",
+    html:htmlContent
+  })
+
+
+    res.status(201).json({ message: "User registered successfully. Credentials send to Email" });
   } catch (err) {
     console.log(err.message)
     res.status(500).json({ error: "Server error." }, );
@@ -37,7 +63,7 @@ export const signin = async(req, res) => {
     const {email, password} = req.body;
      try {
     // Find user
-    const user = await User.findOne({ email });
+    const user = await User.findOne({ email }).populate("currency");
     if (!user || !user.authenticate(password)) {
       return res.status(401).json({ error: "Invalid email or password." });
     }
@@ -63,7 +89,8 @@ export const signin = async(req, res) => {
         email: user.email,
         organization: user.organization,
         role: user.role,
-        status: user.status
+        status: user.status,
+        currency: user.currency
       }
     });
   } catch (err) {
@@ -105,5 +132,71 @@ export const createSuperAdmin = async (req, res) => {
   } catch (error) {
     console.error("Error creating Super Admin:", error);
     res.status(500).json({ error: "Server error." });
+  }
+};
+
+export const forgotPassword = async(req, res) => {
+   const { email } = req.body;
+   const _dirname = path.resolve()
+
+  try {
+    const user = await User.findOne({ email });
+    if (!user) return res.status(404).json({ error: "Email not found" });
+
+    // generate 6-digit OTP
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    user.resetOTP = otp;
+    user.resetOTPExpires = Date.now() + 10 * 60 * 1000; // 10 min expiry
+    await user.save();
+
+    const templatePath = path.join(_dirname,"templates", "otp.html")
+    console.log("template path", templatePath)
+      const htmlContent = await ejs.renderFile(templatePath, {
+    otp,
+    validity: 10,
+    year:new Date().getFullYear()
+  });
+
+    // send OTP via email
+    const transporter = nodemailer.createTransport({
+      service: "Gmail",
+      auth: { user: process.env.SENDER_EMAIL, pass: process.env.SENDER_EMAIL_PASS },
+    });
+
+    await transporter.sendMail({
+      to: user.email,
+      subject: "Your Password Reset OTP",
+      html: htmlContent,
+    });
+
+    res.status(200).json({ message: "OTP sent to your email" });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Error sending OTP" });
+  }
+}
+
+export const verifyOTP =  async (req, res) => {
+  const { email, otp, newPassword } = req.body;
+
+  try {
+    const user = await User.findOne({
+      email,
+      resetOTP: otp,
+      resetOTPExpires: { $gt: Date.now() },
+    });
+
+    if (!user) return res.status(400).json({ error: "Invalid or expired OTP" });
+
+    user.password = newPassword;
+    user.resetOTP = undefined;
+    user.resetOTPExpires = undefined;
+
+    await user.save();
+
+    res.status(200).json({ message: "Password reset successful" });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Error resetting password" });
   }
 };

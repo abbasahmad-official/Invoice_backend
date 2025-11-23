@@ -13,7 +13,8 @@ const productSchema = new mongoose.Schema({
     },
     price: {
         type: Number,
-        trim: true
+        trim: true,
+        required: true
     },
     organization:{type: ObjectId, ref:"Org"},
     createdBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" }

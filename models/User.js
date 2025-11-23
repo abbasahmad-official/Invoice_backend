@@ -20,6 +20,9 @@ const userSchema = new mongoose.Schema({
         type: String,
         required: true
     },
+     resetOTP:String,
+     resetOTPExpires: Date,
+    currency: { type: ObjectId, ref: "Currency" },
     status: { type: String, enum: ["active", "suspended"], default: "active" },
     organization: {type:ObjectId, ref: "Org", default: null},
     // admin: {type: ObjectId, ref: "User"},

@@ -24,6 +24,7 @@ const orgSchema = new mongoose.Schema({
         trim: true,
         required: true
     },
+    currency: { type: ObjectId, ref: "Currency" },
     status: {
         type: String, enum: ["active", "suspended"], default: "active"
     },

@@ -2,6 +2,9 @@ import Invoice from "../models/Invoice.js";
 import nodemailer from "nodemailer";
 import Stripe from "stripe";
 import dotenv from "dotenv";
+import path from "path";
+import ejs from "ejs"
+
 dotenv.config();
 const stripe =  Stripe(process.env.STRIPE_SECRET_KEY);
 
@@ -10,35 +13,47 @@ export const create = async (req, res) => {
     try {
         const invoice = new Invoice(req.body);
         await invoice.save();
-        res.status(200).json(invoice);
+        res.status(200).json({message:"Invoice saved successfully",invoice});
     } catch (error) {
         res.status(400).json({ error: error.message })
     }
 }
 
-//
+
 export const createSend = async (req, res) => {
     try {
         const invoice = new Invoice(req.body);
-        await invoice.save();
-          const invoiceLink = `https://invoice-frontend-rxzv.vercel.app/pay/invoice/${invoice.id}`;
+        const _dirname = path.resolve()
+        const templatePath = path.join(_dirname, "templates", "invoice.html")
+        const InvoiceLink = `${process.env.FRONTEND_URL}/pay/invoice/${invoice._id}`
         await invoice.populate("client", "email name"); // <- this loads client email only
-      console.log(invoice.client.email);
-        const d  = await sendInvoiceLinkToUser(invoice.client.email, invoiceLink);
-        console.log(d)
-        res.status(200).json(invoice);
+         const htmlContent = await ejs.renderFile(templatePath, {
+            invoiceLink: InvoiceLink,
+            contact: process.env.SENDER_EMAIL,
+            year: new Date().getFullYear()
+        })  
+        await sendEmailDynamic(invoice.client.email, htmlContent)
+        await invoice.save();
+        res.status(200).json({message:"Invoice saved and emailed"});
     } catch (error) {
         res.status(400).json({ error: error.message })
     }
 }
-export const sendEmail = async (req, res) => {
-    try {
+
+export const sendEmail = async(req, res) =>{
+        try {
         const invoice = req.body;
-        // await invoice.save();
-          const invoiceLink = `https://invoice-frontend-rxzv.vercel.app/pay/invoice/${invoice.id}`;
-        const d  = await sendInvoiceLinkToUser(invoice.client.email, invoiceLink);
-        console.log(d)
-        res.status(200).json(invoice);
+        // if(invoice.status === "Paid") return res.status(200).json({message: "This invoice is already paid"})
+        const _dirname = path.resolve()
+        const templatePath = path.join(_dirname, "templates", "invoice.html")
+        const InvoiceLink = `${process.env.FRONTEND_URL}/pay/invoice/${invoice._id}`
+        const htmlContent = await ejs.renderFile(templatePath, {
+            invoiceLink: InvoiceLink,
+            contact: process.env.SENDER_EMAIL,
+            year: new Date().getFullYear()
+        })    
+        await sendEmailDynamic(invoice.client.email, htmlContent)
+        res.status(200).json({message:"Email send successfully"});
     } catch (error) {
         res.status(400).json({ error: error.message })
     }
@@ -47,49 +62,24 @@ export const sendEmail = async (req, res) => {
 const transporter = nodemailer.createTransport({
   service: 'gmail',
   auth: {
-    user: 'abbasahmad8032@gmail.com',
-    pass: 'ksibzdtzfubpaqcq' // NOT your Gmail password — see below!
+    user: process.env.SENDER_EMAIL,
+    pass: process.env.SENDER_EMAIL_PASS // NOT your Gmail password — see below!
   }
 });
 
-async function sendInvoiceLinkToUser(email, invoiceLink) {
-try {
-  await transporter.sendMail({
-    from: '"Invoice System" <abbasahmad8032@gmail.com>', // Sender name & address
-    to: email,                                           // Recipient's email
-    subject: 'Your Invoice is Ready for Payment',
-    text: `Hello, your invoice is ready. Please view and make the payment here: ${invoiceLink}`, // Fallback plain text
-    html: `
-      <p>Hello,</p>
-      <p>Your invoice is ready and requires payment. Please view it here:</p>
-      <p>
-        <a href="${invoiceLink}" style="
-          display: inline-block;
-          padding: 10px 20px;
-          background-color: #007BFF;
-          color: #ffffff;
-          text-decoration: none;
-          border-radius: 5px;
-          font-weight: bold;
-        ">
-          View and Pay Invoice
-        </a>
-      </p>
-      <p>Thank you for your prompt attention to this matter.</p>
-    `
-  });
-} catch (error) {
-  console.error('Error sending email:', error);
+const sendEmailDynamic = async(recieverEmail, htmlContent) =>{
+    try{
+        await transporter.sendMail({
+            from:`"Invoice System" <${process.env.SENDER_EMAIL}>`,
+            to: recieverEmail,
+            subject: "Your invoice is ready for payment",
+            html: htmlContent
+        })
+    } catch(error){
+        console.error("error in invoice email send", error)
+    }
 }
 
-}
-
-
-
-
-
-
-//
 
 // get all invoices
 export const list = async (req, res) => {
@@ -194,6 +184,15 @@ export const listCountByUser = async (req, res) => {
         res.status(400).json({ error: error.message })
     }
 }
+// export const listCountByClient = async (req, res) => {
+//     try {
+//         const clientId = req.params.clientId;
+//         const count = await Invoice.countDocuments({client:clientId});
+//         res.status(200).json({ count });
+//     } catch (error) {
+//         res.status(400).json({ error: error.message })
+//     }
+// }
 
 
 // get all invoices for user
@@ -343,8 +342,9 @@ const { amount } = req.body;
   console.log(amount);
 
   try {
+     const amountInCents = Math.round(amount * 100);
     const paymentIntent = await stripe.paymentIntents.create({
-      amount,
+      amount:amountInCents,
       currency: 'usd',
       automatic_payment_methods: { enabled: true },
     });
@@ -355,3 +355,65 @@ const { amount } = req.body;
     res.status(500).json({ error: error.message });
   }
 }
+
+
+
+
+// GET /api/invoice/template/:invoiceId
+export const getInvoiceHtml = async (req, res) => {
+  try {
+    const invoiceData = await Invoice.findById(req.params.invoiceId)
+      .populate("organization", "name email address phone")
+      .populate("client", "name email address phone")
+      .populate({
+        path: "items.productId",
+        select: "name price"
+      });
+
+    if (!invoiceData) return res.status(404).send("Invoice not found");
+
+    const __dirname = path.resolve();
+    const templatePath = path.join(
+      __dirname,
+      "templates",
+      "invoice-template.html"
+    );
+
+    const createdAt = new Date(invoiceData.createdAt);
+    const formattedDate = `${
+      createdAt.getMonth() + 1
+    }/${createdAt.getDate()}/${createdAt.getFullYear()}`;
+
+    const subtotal = invoiceData.items.reduce(
+      (sum, item) => sum + item.price * item.quantity,
+      0
+    );
+    const taxAmount = (subtotal * invoiceData.tax) / 100;
+
+    const htmlContent = await ejs.renderFile(templatePath, {
+      companyName: invoiceData.organization.name,
+      companyAddress: invoiceData.organization.address,
+      companyEmail: invoiceData.organization.email,
+      invoiceNumber: `# ${invoiceData.invoiceNumber}`,
+      invoiceCreatedAt: formattedDate,
+      clientName: invoiceData.client.name,
+      clientAddress: invoiceData.client.address,
+      clientEmail: invoiceData.client.email,
+      clientPhone: invoiceData.client.phone,
+      invoiceTotal: invoiceData.totalAmount,
+      invoiceItems: invoiceData.items,
+      invoiceSubtotal: subtotal,
+      invoiceTaxPercent: invoiceData.tax,
+      invoiceTax: taxAmount.toFixed(2),
+      accountNo: process.env.ACCOUNT_NO,
+      accountName: process.env.ACCOUNT_NAME,
+      BankName: process.env.ACCOUNT_BANK_NAME
+    });
+
+    res.send(htmlContent); // 👉 sends HTML for frontend preview
+  } catch (err) {
+    console.log(err);
+    res.status(500).send("Error generating HTML template");
+  }
+};
+

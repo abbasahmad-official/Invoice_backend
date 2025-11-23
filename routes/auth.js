@@ -1,5 +1,5 @@
 import express from "express";
-import {signin, signout, signup} from "../controllers/auth.js";
+import {signin, signout, signup, forgotPassword, verifyOTP} from "../controllers/auth.js";
 import {userSignupValidator} from "../validator/userSignup.js";
 import {protect, adminOnly } from "../middleware/auth.js";
 
@@ -12,5 +12,7 @@ const router = express.Router();
 router.post("/signup", userSignupValidator, signup);
 router.post("/signin", signin);
 router.post("/signout",protect, signout);
+router.post("/forgot-password", forgotPassword);
+router.post("/verify-otp", verifyOTP);
 
 export default router;

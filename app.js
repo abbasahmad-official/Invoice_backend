@@ -6,7 +6,10 @@ import cookieParser from "cookie-parser";
 import morgan from "morgan";
 import nodemailer from "nodemailer";
 import { ensureSuperAdmin } from "./utils/ensureSuperAdmin.js";
-
+import path from "path";
+import { fileURLToPath } from "url";
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 
 
@@ -20,8 +23,13 @@ import productRoutes from "./routes/product.js";
 import invoiceRoutes from "./routes/invoice.js";
 import userRoutes from "./routes/user.js";
 import orgRoutes from "./routes/org.js"
+import logoPicRoutes from "./routes/logoPics.js"
+import currencyRoutes from "./routes/currency.js"
+import pdfRoutes from "./routes/pdf.js"
+
 // other imports
 import "./jobs/updateOverdueInvoices.js"; // 👈 import the cron job
+import { seedCurrencyIfNeeded } from "./utils/seedCurrency.js";
 
 
 
@@ -45,9 +53,14 @@ app.use(cors({
       callback(new Error('Not allowed by CORS'));
     }
   },
+  // origin:true,
   credentials: true, // for cookies or auth headers
 }));
 
+// app.options('*', cors({
+//   origin: true,
+//   credentials: true,
+// }));
 app.use(express.json());
 app.use(cookieParser());
 app.use(morgan("dev"));
@@ -57,10 +70,15 @@ app.use(morgan("dev"));
 mongoose.connect(process.env.MONGO_URI).then(()=>{
     try{
         console.log("database connected");
+        seedCurrencyIfNeeded()
+        ensureSuperAdmin();
     }catch(error){
         console.log("error in connecting database",error);
     }
 });
+
+// serve uplaod static 
+app.use("/api/uploads", express.static(path.join(__dirname, "uploads")))
 
 //Routes middleware
 app.use("/api", authRoutes);
@@ -69,8 +87,11 @@ app.use("/api", productRoutes);
 app.use("/api", invoiceRoutes);
 app.use("/api", userRoutes);
 app.use("/api", orgRoutes)
+app.use("/api", logoPicRoutes)
+app.use("/api", currencyRoutes)
+app.use("/api", pdfRoutes)
 
-ensureSuperAdmin();
+
 
 
 // port listen

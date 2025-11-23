@@ -1,5 +1,7 @@
 import { param } from "express-validator";
 import Client from "../models/Client.js";
+import Invoice from "../models/Invoice.js";
+import mongoose from "mongoose";
 
 
 // create client
@@ -55,6 +57,52 @@ export const listClient = async(req,res) => {
     }catch(error){
         res.status(400).json({error: error.message})
     }
+}
+export const listClientInvoiceCount = async(req,res) => {
+try {
+     const {userId} = req.params
+    const result = await Invoice.aggregate([
+      {
+        $group: {
+          _id: "$client",               // group by client ID
+          invoiceCount: { $sum: 1 }
+        }
+      },
+      {
+        $lookup: {
+          from: "clients",              // MongoDB collection name (lowercase plural)
+          localField: "_id",
+          foreignField: "_id",
+          as: "clientData"
+        }
+      },
+      { $unwind: "$clientData" },       // convert array → object
+
+         // 3. FILTER using client's organization
+      {
+        $match: {
+          "clientData.createdBy": new mongoose.Types.ObjectId(userId)
+        }
+      },
+      {
+        $project: {                     // return only needed fields
+          _id: "$clientData._id",
+          name: "$clientData.name",
+          email: "$clientData.email",
+          address: "$clientData.address",
+          phone: "$clientData.phone",
+          createdAt: "$clientData.createdAt",
+          invoiceCount: 1,
+        //   _id: 0
+        }
+      }
+    ]);
+
+    res.status(200).json(result);
+
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
 }
 
 
@@ -114,5 +162,53 @@ export const listSearch = async (req, res) => {
   } catch (err) {
     console.error(err);
     res.status(400).json({ error: 'Error fetching products' });
+  }
+};
+
+
+export const listAllClientInvoiceCounts = async (req, res) => {
+  try {
+     const {orgId} = req.query
+    const result = await Invoice.aggregate([
+      {
+        $group: {
+          _id: "$client",               // group by client ID
+          invoiceCount: { $sum: 1 }
+        }
+      },
+      {
+        $lookup: {
+          from: "clients",              // MongoDB collection name (lowercase plural)
+          localField: "_id",
+          foreignField: "_id",
+          as: "clientData"
+        }
+      },
+      { $unwind: "$clientData" },       // convert array → object
+
+         // 3. FILTER using client's organization
+      {
+        $match: {
+          "clientData.organization": new mongoose.Types.ObjectId(orgId)
+        }
+      },
+      {
+        $project: {                     // return only needed fields
+          _id: "$clientData._id",
+          name: "$clientData.name",
+          email: "$clientData.email",
+          address: "$clientData.address",
+          phone: "$clientData.phone",
+          createdAt: "$clientData.createdAt",
+          invoiceCount: 1,
+        //   _id: 0
+        }
+      }
+    ]);
+
+    res.status(200).json(result);
+
+  } catch (error) {
+    res.status(500).json({ error: error.message });
   }
 };

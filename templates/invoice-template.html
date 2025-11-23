@@ -1,0 +1,170 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Invoice</title>
+<style>
+:root{
+  --bg: #f7f9fb;
+  --card-bg: #ffffff;
+  --accent: #ffbf00;
+  --accent-dark: #f2b600;
+  --navy: #2b3640;
+  --muted: #717f8a;
+  --border: #e6e9ec;
+  --radius: 10px;
+  --pad: 15px;
+  font-family: "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+html, body { margin:0; padding:0; background: var(--bg); color: var(--navy); font-size:14px; }
+.invoice-wrap{ max-width:680px; margin:0 auto; background:var(--card-bg); border-radius:var(--radius); padding:var(--pad); box-sizing:border-box; overflow:visible; box-shadow:none; }
+.invoice-header{ display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:12px; background:rgb(44,44,70); padding:8px 12px; border-radius:8px; }
+.brand{ display:flex; gap:12px; align-items:center; }
+.brand .logo{ width:60px; height:60px; display:flex; align-items:center; justify-content:center; border-radius:6px; background:linear-gradient(180deg,#30414b,#24323a); padding:6px; box-sizing:border-box; }
+.brand .logo img{ max-width:100%; max-height:100%; object-fit:contain; }
+.brand .company{ font-weight:700; color:#e5e5e5; font-size:16px; }
+.invoice-badge .banner{ background:var(--accent-dark); color:#111; font-weight:700; padding:10px 18px; border-radius:6px 0 0 6px; font-size:15px; width:120px; box-shadow:0 3px 0 rgba(0,0,0,0.06); clip-path: polygon(30px 0, 100% 0, 100% 100%, 30px 100%, 0 100%); text-align:center; }
+.info-grid{ display:grid; grid-template-columns:1fr 260px; gap:12px; margin:12px 0 8px; }
+.bill-to h4{ margin:0 0 6px; font-size:16px; color:var(--muted); font-weight:700; }
+.bill-to .addr{ font-size:14px; line-height:1.45; color:#34424b; }
+.meta{ display:flex; flex-direction:column; }
+.meta .row{ display:flex; justify-content:space-between; align-items:center; margin:4px 0; }
+.meta .label{ background:rgb(44,44,70); padding:6px 10px; border-radius:6px; font-weight:700; color:white; font-size:14px; }
+.meta .value{ background:#f3f6f8; padding:6px 10px; border-radius:6px; font-weight:700; color:var(--navy); min-width:110px; text-align:center; font-size:14px; }
+.total-due-wrap{ display:flex; flex-direction:column; align-items:center; margin:8px 0 14px; }
+.total-due{ background:var(--accent-dark); padding:8px 24px; border-radius:4px; font-weight:800; color:#111; font-size:17px; box-shadow:0 3px 0 rgba(0,0,0,0.06); }
+.items-table{ width:100%; border-collapse:collapse; margin-top:6px; font-size:14px; }
+.items-table thead th{ background:rgb(44,44,70); color:white; text-align:left; padding:8px 10px; font-weight:700; font-size:13px; }
+.items-table tbody td{ padding:6px 10px; vertical-align:middle; color:#263238; font-size:13px; }
+.items-table tbody tr:nth-child(odd){ background:#fff; }
+.items-table tbody tr:nth-child(even){ background:#f7f9fc; }
+.items-table .price, .items-table .qty, .items-table .total{ text-align:right; font-variant-numeric:tabular-nums; }
+.summary{ margin-top:30px; display:flex; justify-content:flex-end; }
+.summary .box{ width:250px; padding-left:10px; }
+.summary .line{ display:flex; justify-content:space-between; align-items:center; padding:4px 8px; border-bottom:1px solid #eef2f4; font-size:13px; }
+.summary .line .label{color:var(--muted); font-weight:700;}
+.summary .line .val{font-weight:800; color:var(--navy);}
+.summary .total-line{ background:var(--accent-dark); padding:8px; border-radius:6px; margin-top:6px; display:flex; justify-content:space-between; align-items:center; font-size:15px; font-weight:900; color:var(--navy); }
+.lower{ display:flex; gap:10px; margin-top:10px; align-items:flex-start; flex-wrap:wrap; }
+.payment{ background:#f8fafc; border-radius:8px; border:1px solid var(--border); width:250px; }
+.payment h5{ margin:0 0 6px; padding:8px; background:rgb(44,44,70); color:white; font-size:13px; font-weight:700; text-align:center; }
+.payment p{ margin:2px 0; font-size:13px; color:#323e46; padding-left:8px; }
+.signature{ margin-top: 20px; flex:1 1 180px; display:flex; flex-direction:column; gap:6px; align-items:center; padding-left:80px; }
+.signature .sig-block{ text-align:right; font-family:"Lucida Handwriting","Brush Script MT",cursive; font-size:14px; color:#222; }
+.signature .sig-line{ border:1px solid gray; width:180px; }
+.signature .auth{ font-size:14px; color:var(--muted); }
+.footer-accent{ height: 25px; margin-top:12px; display:flex; align-items:flex-end; background-color:rgb(44,44,70); border-radius:6px; }
+.accent-left{ background:var(--accent-dark); height:100%; width:20px; flex:0 0 140px; border-radius:4px; clip-path: polygon(0 0, calc(100% - 10px) 0, 100% 100%, calc(100% - 10px) 100%, 0 100%); }
+.accent-right{ background:rgb(44,44,70); height:100%; flex:1; border-radius:4px; color:white; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:12px; clip-path: polygon(10px 0, 100% 0, 100% 100%, 10px 100%, 0 0%); }
+@media print { body { background: #fff; padding:0; margin:0; } .invoice-wrap { box-shadow:none; margin:0 auto; page-break-inside:avoid; } .items-table tr, .summary, .lower { page-break-inside:avoid; } }
+@media(max-width:760px){ .info-grid{grid-template-columns:1fr;} .meta{order:2;} .brand .logo{width:50px;height:50px;} .invoice-badge .banner{width:100px;padding:6px 12px;font-size:14px;} .summary{justify-content:center;} .summary .box{width:100%;} .signature{padding-left:0;} }
+</style>
+</head>
+<body>
+<div class="invoice-wrap">
+
+  <!-- HEADER -->
+  <header class="invoice-header">
+    <div class="brand">
+      <div class="logo"><img src="logo-invoice.jpg" alt="Logo"></div>
+      <div>
+        <div class="company"><%= companyName %></div>
+        <div style="font-size:12px;color:#ddd;margin-top:4px;"><%= companyAddress %></div>
+        <div style="font-size:12px;color:#ddd;margin-top:4px;"><%= companyEmail %></div>
+      </div>
+    </div>
+
+    <div class="invoice-badge">
+      <div class="banner">INVOICE</div>
+    </div>
+  </header>
+
+  <!-- INFO -->
+  <section class="info-grid">
+    <div class="bill-to">
+      <h4>Invoice To:</h4>
+      <div class="addr">
+        <strong><%= clientName %></strong><br>
+        <%= clientAddress %> <br>
+        <%= clientEmail %> <br>
+        <%= clientPhone %>
+      </div>
+    </div>
+
+    <div class="meta">
+      <div class="row">
+        <div class="label">Invoice</div>
+        <div class="value"><%= invoiceNumber %></div>
+      </div>
+      <div class="row">
+        <div class="label">Date</div>
+        <div class="value"><%= invoiceCreatedAt %></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- TOTAL DUE -->
+  <div class="total-due-wrap">
+    <div style="color:var(--muted);font-weight:700;font-size:14px;">TOTAL DUE</div>
+    <div class="total-due">$<%= invoiceTotal %></div>
+  </div>
+
+  <!-- TABLE -->
+  <table class="items-table">
+    <thead>
+      <tr>
+        <th>ITEM DESCRIPTION</th>
+        <th>PRICE</th>
+        <th style="text-align: center;">QTY</th>
+        <th style="text-align:right;">TOTAL</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% invoiceItems.forEach(item => { %>
+        <tr>
+          <td style="text-align: left;"><%= item.productId.name || 'Item' %></td>
+          <td class="price" style="text-align: left;">$<%= item.price %></td>
+          <td class="qty" style="text-align: center;""><%= item.quantity %></td>
+          <td class="total">$<%= item.price * item.quantity %></td>
+        </tr>
+      <% }) %>
+    </tbody>
+  </table>
+
+  <!-- SUMMARY -->
+  <div class="summary">
+    <div class="box">
+      <div class="line"><div class="label">SUB TOTAL:</div><div class="val">$<%= invoiceSubtotal %></div></div>
+      <div class="line"><div class="label">TAX <%= invoiceTaxPercent %>%:</div><div class="val">$<%= invoiceTax %></div></div>
+      <div class="total-line">
+        <div>TOTAL:</div><div>$<%= invoiceTotal %></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- LOWER -->
+  <div class="lower">
+    <div class="payment">
+      <h5>Payment Info</h5>
+      <p><strong>Account #:</strong> <%= accountNo %></p>
+      <p><strong>A/C Name:</strong> <%= accountName %></p>
+      <p><strong>Bank:</strong> <%= BankName %></p>
+    </div>
+
+    <div class="signature">
+      <div class="sig-block">J. Lorem Ipsum</div>
+      <div class="sig-line"></div>
+      <div class="auth">Authorised Sign</div>
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <div class="footer-accent">
+    <div class="accent-left"></div>
+    <div class="accent-right">Thank you for your business!</div>
+  </div>
+
+</div>
+</body>
+</html>

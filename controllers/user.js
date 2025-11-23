@@ -68,3 +68,13 @@ export const  listByStatus = async (req, res) => {
     res.status(400).json({ error: error.message });
   }
 }
+
+export const removeManager = async(req,res) => {
+  const {managerId} = req.params
+  try{
+      const removedItem = await User.findByIdAndDelete(managerId, {new:true})
+      res.status(200).json({message:"remove successfully", item:removedItem})
+  }catch(error){
+    console.log(error)
+  }
+}

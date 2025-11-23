@@ -18,8 +18,8 @@ const invoiceSchema = new mongoose.Schema({
             ref: "Product",
             required: true
         }, 
-        quantity: Number,
-    price: Number
+        quantity: {type:Number, min:1, required:true},
+    price: {type:Number, min:0, required:true}
     }
     ],
     tax: Number,
