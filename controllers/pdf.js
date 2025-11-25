@@ -3,6 +3,7 @@ import path from "path";
 import ejs from "ejs";
 import Invoice from "../models/Invoice.js";
 import Client from "../models/Client.js";
+import File from "../models/File.js";
 
 export const downloadPDF = async (req, res) => {
   try {
@@ -23,8 +24,8 @@ export const downloadPDF = async (req, res) => {
     `;
 
     const browser = await puppeteer.launch({
-      headless: "new",
-      args: ["--no-sandbox"],
+   headless: true, // "new" mode may fail on some Render Linux builds
+  args: ["--no-sandbox", "--disable-setuid-sandbox"]
     });
 
     const page = await browser.newPage();
@@ -77,10 +78,26 @@ export const downloadPdfTemplate = async (req, res) => {
 
     // Calculate tax amount
     const taxAmount = (subtotal * invoiceData.tax) / 100;
+    let logoUrl;
+    
+    // 1. Try to load logo from DB
+    const invoiceLogo = await File.findOne({ organization: invoiceData.organization });
+    
+    if (invoiceLogo?.path) {
+        logoUrl = `${process.env.VITE_API}/${invoiceLogo.path.replace(/\\/g, "/")}`;
+    } else {
+        // 2. Fallback
+        logoUrl = `${process.env.VITE_API}/uploads/dummy-logo.png`;
+    } 
+    if(invoiceLogo?.companyName){
+           invoiceData.organization.name = invoiceLogo.companyName
+       }
+
 
     const invoiceSubtotal = invoiceData.totalAmount;
     // 1. Render HTML with EJS
     const htmlContent = await ejs.renderFile(templatePath, {
+      logoUrl,
       companyName: invoiceData?.organization.name,
       companyAddress: invoiceData?.organization.address,
       companyEmail: invoiceData?.organization.email,
@@ -95,9 +112,9 @@ export const downloadPdfTemplate = async (req, res) => {
       invoiceSubtotal: subtotal,
       invoiceTaxPercent: invoiceData.tax,
       invoiceTax: (taxAmount).toFixed(2),
-      accountNo: process.env.ACCOUNT_NO || "000123456789",
-      accountName: process.env.ACCOUNT_NAME || "Acme Corporation",
-      BankName: process.env.ACCOUNT_BANK_NAME || "Global Bank Ltd",
+      accountNo: process.env.ACCOUNT_NO,
+      accountName: process.env.ACCOUNT_NAME,
+      BankName: process.env.ACCOUNT_BANK_NAME,
     });
 
     // 2. Launch Puppeteer

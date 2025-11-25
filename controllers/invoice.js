@@ -4,9 +4,18 @@ import Stripe from "stripe";
 import dotenv from "dotenv";
 import path from "path";
 import ejs from "ejs"
+import File from "../models/File.js";
 
 dotenv.config();
 const stripe =  Stripe(process.env.STRIPE_SECRET_KEY);
+
+const transporter = nodemailer.createTransport({
+  service: 'gmail',
+  auth: {
+    user: process.env.SENDER_EMAIL,
+    pass: process.env.SENDER_EMAIL_PASS // NOT your Gmail password — see below!
+  }
+});
 
 // create invoice
 export const create = async (req, res) => {
@@ -20,12 +29,13 @@ export const create = async (req, res) => {
 }
 
 
+
 export const createSend = async (req, res) => {
     try {
         const invoice = new Invoice(req.body);
         const _dirname = path.resolve()
         const templatePath = path.join(_dirname, "templates", "invoice.html")
-        const InvoiceLink = `${process.env.FRONTEND_URL}/pay/invoice/${invoice._id}`
+        const InvoiceLink = `${ "http://localhost:5173" || process.env.FRONTEND_URL}/pay/invoice/${invoice._id}`
         await invoice.populate("client", "email name"); // <- this loads client email only
          const htmlContent = await ejs.renderFile(templatePath, {
             invoiceLink: InvoiceLink,
@@ -46,7 +56,7 @@ export const sendEmail = async(req, res) =>{
         // if(invoice.status === "Paid") return res.status(200).json({message: "This invoice is already paid"})
         const _dirname = path.resolve()
         const templatePath = path.join(_dirname, "templates", "invoice.html")
-        const InvoiceLink = `${process.env.FRONTEND_URL}/pay/invoice/${invoice._id}`
+        const InvoiceLink = `${"http://localhost:5173" || process.env.FRONTEND_URL}/pay/invoice/${invoice._id}`
         const htmlContent = await ejs.renderFile(templatePath, {
             invoiceLink: InvoiceLink,
             contact: process.env.SENDER_EMAIL,
@@ -59,13 +69,7 @@ export const sendEmail = async(req, res) =>{
     }
 }
 
-const transporter = nodemailer.createTransport({
-  service: 'gmail',
-  auth: {
-    user: process.env.SENDER_EMAIL,
-    pass: process.env.SENDER_EMAIL_PASS // NOT your Gmail password — see below!
-  }
-});
+
 
 const sendEmailDynamic = async(recieverEmail, htmlContent) =>{
     try{
@@ -389,8 +393,26 @@ export const getInvoiceHtml = async (req, res) => {
       0
     );
     const taxAmount = (subtotal * invoiceData.tax) / 100;
+// 
+let logoUrl;
 
-    const htmlContent = await ejs.renderFile(templatePath, {
+// 1. Try to load logo from DB
+const invoiceLogo = await File.findOne({ organization: invoiceData.organization });
+
+if (invoiceLogo?.path) {
+    logoUrl = `${process.env.VITE_API}/${invoiceLogo.path.replace(/\\/g, "/")}`;
+} else {
+    // 2. Fallback
+    logoUrl = `${process.env.VITE_API}/uploads/dummy-logo.png`;
+} 
+if(invoiceLogo?.companyName){
+       invoiceData.organization.name = invoiceLogo.companyName
+   }
+
+// console.log(logoUrl)
+
+const htmlContent = await ejs.renderFile(templatePath, {
+         logoUrl,
       companyName: invoiceData.organization.name,
       companyAddress: invoiceData.organization.address,
       companyEmail: invoiceData.organization.email,
@@ -409,7 +431,7 @@ export const getInvoiceHtml = async (req, res) => {
       accountName: process.env.ACCOUNT_NAME,
       BankName: process.env.ACCOUNT_BANK_NAME
     });
-
+    // console.log(invoiceLogo.path)
     res.send(htmlContent); // 👉 sends HTML for frontend preview
   } catch (err) {
     console.log(err);

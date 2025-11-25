@@ -167,7 +167,8 @@ export const forgotPassword = async(req, res) => {
     });
 
     await transporter.sendMail({
-      to: user.email,
+      from:`"Invoice System" <${process.env.SENDER_EMAIL}>`,
+      to:  user.email,
       subject: "Your Password Reset OTP",
       html: htmlContent,
     });
