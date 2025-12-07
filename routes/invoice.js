@@ -2,12 +2,12 @@ import express from "express";
 import { getInvoiceHtml, updateForUserPay,createPaymentIntent ,sendEmail,createSend ,create, listUserOverdue ,listUserLast, list, read, update, listLast, listUserPaid, listOverdue,listUserPending,remove, listInvoice, listInvoiceBoth, listSearch, listPaid, listPending, listCount, listCountByUser} from "../controllers/invoice.js";
 import {protect, adminOnly} from "../middleware/auth.js";
 import { invoiceValidator } from "../validator/invoiceCreation.js";
-
+import { checkLimit } from "../middleware/cheackLimit.js";
 const router = express.Router();
 
-router.post("/invoice/create", protect, invoiceValidator, create);
-router.post("/invoice/create/send", protect, invoiceValidator, createSend);
-router.post("/invoice/email/send", protect, sendEmail);
+router.post("/invoice/create", protect, invoiceValidator, checkLimit("invoiceLimit"), create);
+router.post("/invoice/create/send", protect, invoiceValidator, checkLimit("emailLimit"),  createSend);
+router.post("/invoice/email/send", protect, checkLimit("emailLimit"), sendEmail);
 router.get("/invoice/view/:invoiceId", protect, read);
 router.get("/invoice/client/view/:invoiceId", read);
 router.put("/invoice/update/:invoiceId", protect, invoiceValidator, update);

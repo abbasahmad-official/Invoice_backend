@@ -1,5 +1,5 @@
 import express from "express";
-import {update, remove, create, list,  active, suspended} from "../controllers/org.js"
+import {update, remove, create, list,  active, suspended,templateNameUpdate, getOrg} from "../controllers/org.js"
 import {protect, adminOnly} from "../middleware/auth.js"
 
 const router = express.Router();
@@ -9,7 +9,9 @@ router.get("/orgs", protect, list);
 router.get("/org/active", protect, active);
 router.get("/org/suspended", protect, suspended);
 router.delete("/org/remove/:orgId", remove);
+router.patch("/org/update/template-name/:orgId", protect, templateNameUpdate);
 router.put("/org/update/:orgId", update);
+router.get("/org/:orgId", protect, getOrg);
 // router.get("/client/view/:clientId", read);
 // router.put("/client/update/:clientId", protect, update);
 // router.delete("/client/remove/:clientId",  remove);

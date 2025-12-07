@@ -66,13 +66,17 @@ export const signin = async(req, res) => {
     const {email, password} = req.body;
      try {
     // Find user
-    const user = await User.findOne({ email }).populate("currency");
+    const user = await User.findOne({ email }).populate("currency").populate({
+    path: "organization",
+    match: { _id: { $exists: true } } // ensures no unwanted populate
+  })
     if (!user || !user.authenticate(password)) {
       return res.status(401).json({ error: "Invalid email or password." });
     }
 
     // Create JWT token
-    const token = jwt.sign({ _id: user._id, role: user.role }, process.env.JWT_SECRET, {
+    const token = jwt.sign({ _id: user._id, role: user.role,plan:user.organization?.plan || null,
+        usage:user.organization?.usage || null,org:user.organization || null }, process.env.JWT_SECRET, {
       expiresIn: "20d"
     });
 
@@ -90,13 +94,14 @@ export const signin = async(req, res) => {
         _id: user._id,
         name: user.name,
         email: user.email,
-        organization: user.organization,
+        organization: user.organization?._id || null,
         role: user.role,
         status: user.status,
-        currency: user.currency
+        currency: user.currency,
       }
     });
   } catch (err) {
+    console.log(err.message)
     res.status(500).json({ error: "Server error." });
   }
 }

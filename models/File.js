@@ -4,6 +4,10 @@ const {ObjectId} = mongoose.Schema
 
 const fileSchema = new mongoose.Schema({
   companyName: String,
+  logo:{
+    data: Buffer,
+    contentType: String
+  },
   fieldname: String,
   originalname: String,
   filename: String,

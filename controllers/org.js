@@ -9,6 +9,7 @@ import fs from "fs"
 import path from "path"
 import ejs from "ejs"
 import nodemailer from "nodemailer"
+import { error } from "console";
 
 
 export const create = async (req, res) => {
@@ -19,7 +20,10 @@ export const create = async (req, res) => {
     // Save org first
     const org = new Org(safeOrg);
     // await org.save({ session });
-
+if(!org.name || !org.email || !org._id || !newPassword || !org.plan){
+  res.status(400).json({error:"Missing fields. All fields required"})
+  return
+}
     // Find default currency
     const defaultCurrency = await Currency.findOne({ code: "USD" })
     if (!defaultCurrency) {
@@ -153,7 +157,41 @@ export const update = async (req, res) => {
       { status: org.status } // update their status
     );
 
-    res.status(200).json({ message: "organization deleted" });
+    res.status(200).json({ message: "Organization updated" });
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+};
+
+
+export const templateNameUpdate = async (req, res) => {
+  const orgId = req.params.orgId;
+  const {templateName} = req.body;
+  try {
+   
+    const result = await Org.findByIdAndUpdate(orgId, { $set: {templateName:templateName}});
+
+    if (!result) {
+      return res.status(404).json({ error: "Organization not found" });
+    }
+   
+    res.status(200).json({ message: "Organization updated" });
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+};
+
+export const getOrg = async (req, res) => {
+  const orgId = req.params.orgId;
+  try {
+   
+    const result = await Org.findById(orgId);
+
+    if (!result) {
+      return res.status(404).json({ error: "Organization not found" });
+    }
+   
+    res.status(200).json(result);
   } catch (error) {
     res.status(400).json({ error: error.message });
   }

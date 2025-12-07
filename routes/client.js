@@ -2,10 +2,11 @@ import express from "express";
 import {create, list, read, update, remove, listClient, listSearch, listCount, listUserCount, listAllClientInvoiceCounts, listClientInvoiceCount} from "../controllers/client.js";
 import {protect, adminOnly} from "../middleware/auth.js"
 import { clientValidator } from "../validator/clientCreation.js";
+import { checkLimit } from "../middleware/cheackLimit.js";
 
 const router = express.Router();
 
-router.post("/client/create", protect, clientValidator, create);
+router.post("/client/create", protect, clientValidator, checkLimit("customerLimit"), create);
 router.get("/client/view/:clientId", read);
 router.put("/client/update/:clientId", protect, clientValidator, update);
 router.delete("/client/remove/:clientId",  remove);

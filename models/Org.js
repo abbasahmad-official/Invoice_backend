@@ -24,6 +24,18 @@ const orgSchema = new mongoose.Schema({
         trim: true,
         required: true
     },
+    plan:{
+        type:String,
+         enum:["Free", "Pro"],
+          required: true,
+          default:"Free"
+    },
+      templateName:{type:String, default:"invoice-template.html"},
+  usage: {
+    invoicesCreated: { type: Number, default: 0 },
+    customersCreated: { type: Number, default: 0 },
+    emailsSent: { type: Number, default: 0 },
+  },
     currency: { type: ObjectId, ref: "Currency" },
     status: {
         type: String, enum: ["active", "suspended"], default: "active"

@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Cute Digital Invoice</title>
+
+<style>
+:root {
+  --pink: #ffb7d5;
+  --peach: #ffd8b5;
+  --mint: #c8f7dc;
+  --purple: #d5ccff;
+  --blue: #b9d8ff;
+  --shadow: 0 8px 25px rgba(0,0,0,0.07);
+  --radius: 18px;
+  --text: #404755;
+  --muted: #6a7280;
+  font-family: "Poppins", "Segoe UI", sans-serif;
+}
+
+body {
+  background: linear-gradient(135deg, #fff7fc, #e7f2ff);
+  padding: 20px;
+  margin: 0;
+  color: var(--text);
+}
+
+.invoice-wrapper {
+  max-width: 760px;
+  margin: auto;
+  background: white;
+  border-radius: var(--radius);
+  padding: 28px;
+  box-shadow: var(--shadow);
+  border: 3px solid #ffe6f2;
+}
+
+/* HEADER */
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.company-info {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.logo-box {
+  background: var(--pink);
+  padding: 10px;
+  border-radius: 14px;
+  width: 70px;
+  height: 70px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  box-shadow: var(--shadow);
+}
+
+.logo-box img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+
+.company-name {
+  font-size: 22px;
+  font-weight: 700;
+  color: #ff5eaa;
+}
+
+.invoice-badge {
+  background: var(--purple);
+  padding: 10px 25px;
+  color: #5a4ea3;
+  border-radius: 20px;
+  font-size: 18px;
+  font-weight: 700;
+  box-shadow: var(--shadow);
+}
+
+/* SECTION TITLES */
+.section-title {
+  font-weight: 700;
+  color: #ff5eaa;
+  margin-top: 25px;
+  margin-bottom: 5px;
+}
+
+/* INFO GRID */
+.info-grid {
+  display: grid;
+  grid-template-columns: 1fr 200px;
+  margin-top: 12px;
+  gap: 20px;
+}
+
+/* Meta rows */
+.meta-box div {
+  background: var(--mint);
+  margin-bottom: 10px;
+  padding: 8px;
+  border-radius: 12px;
+  font-weight: 600;
+  display: flex;
+  justify-content: space-between;
+  color: #2d6b4c;
+}
+
+/* TOTAL DUE */
+.total-due {
+  margin-top: 18px;
+  text-align: center;
+}
+
+.total-label {
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.total-amount {
+  display: inline-block;
+  background: var(--peach);
+  padding: 10px 35px;
+  font-size: 22px;
+  border-radius: 14px;
+  font-weight: 700;
+  box-shadow: var(--shadow);
+  color: #b16f29;
+}
+
+/* TABLE */
+.items-table {
+  margin-top: 25px;
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.items-table th {
+  background: var(--blue);
+  color: #355d91;
+  padding: 10px;
+  border-radius: 10px 10px 0 0;
+}
+
+.items-table td {
+  padding: 10px;
+  background: #f8fbff;
+  border-bottom: 2px solid #e7efff;
+}
+
+.items-table tr:nth-child(even) td {
+  background: #fff4ff;
+}
+
+.right {
+  text-align: right;
+}
+
+/* SUMMARY */
+.summary {
+  margin-top: 30px;
+  width: 260px;
+  margin-left: auto;
+}
+
+.summary-line {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 0;
+  background: var(--purple);
+  margin-bottom: 6px;
+  border-radius: 12px;
+  padding: 10px;
+  color: #4a4184;
+}
+
+.total-summary {
+  background: #ffb7d5;
+  padding: 12px;
+  color: #8d2e5b;
+  border-radius: 16px;
+  font-weight: 800;
+  font-size: 16px;
+  text-align: center;
+  box-shadow: var(--shadow);
+}
+
+/* PAYMENT BOX */
+.payment-box {
+  margin-top: 25px;
+  background: var(--mint);
+  padding: 18px;
+  border-radius: 16px;
+  color: #296e49;
+  font-size: 14px;
+  border-left: 5px solid #1b7c52;
+  box-shadow: var(--shadow);
+}
+
+.payment-box h4 {
+  margin: 0 0 10px;
+  color: #1b7c52;
+  font-weight: 700;
+}
+
+/* FOOTER */
+.footer {
+  text-align: center;
+  margin-top: 30px;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+@media print {
+  body { background: white; padding: 0; }
+  .invoice-wrapper { box-shadow: none; }
+}
+</style>
+</head>
+
+<body>
+
+<div class="invoice-wrapper">
+
+  <!-- HEADER -->
+  <div class="header">
+    <div class="company-info">
+      <div class="logo-box">
+        <img src="<%= logoUrl %>" />
+      </div>
+      <div>
+        <div class="company-name"><%= companyName %></div>
+        <div style="font-size:12px;color:var(--muted);"><%= companyAddress %></div>
+        <div style="font-size:12px;color:var(--muted);"><%= companyEmail %></div>
+      </div>
+    </div>
+
+    <div class="invoice-badge">INVOICE</div>
+  </div>
+
+  <!-- INFO -->
+  <div class="section-title">Invoice To</div>
+
+  <div class="info-grid">
+    <div>
+      <strong><%= clientName %></strong><br>
+      <%= clientAddress %><br>
+      <%= clientEmail %><br>
+      <%= clientPhone %>
+    </div>
+
+    <div class="meta-box">
+      <div><span>Invoice #:</span> <span><%= invoiceNumber %></span></div>
+      <div><span>Date:</span> <span><%= invoiceCreatedAt %></span></div>
+    </div>
+  </div>
+
+  <!-- TOTAL DUE -->
+  <div class="total-due">
+    <div class="total-label">Total Due</div>
+    <div class="total-amount">$<%= invoiceTotal %></div>
+  </div>
+
+  <!-- TABLE -->
+  <table class="items-table">
+    <thead>
+      <tr>
+        <th>Description</th>
+        <th class="right">Price</th>
+        <th class="right">Qty</th>
+        <th class="right">Total</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% invoiceItems.forEach(item => { %>
+      <tr>
+        <td><%= item.productId.name %></td>
+        <td class="right">$<%= item.price %></td>
+        <td class="right"><%= item.quantity %></td>
+        <td class="right">$<%= item.price * item.quantity %></td>
+      </tr>
+      <% }) %>
+    </tbody>
+  </table>
+
+  <!-- SUMMARY -->
+  <div class="summary">
+    <div class="summary-line">
+      <span>Subtotal</span>
+      <span>$<%= invoiceSubtotal %></span>
+    </div>
+    <div class="summary-line">
+      <span>Tax <%= invoiceTaxPercent %>%</span>
+      <span>$<%= invoiceTax %></span>
+    </div>
+
+    <div class="total-summary">
+      Total $<%= invoiceTotal %>
+    </div>
+  </div>
+
+  <!-- PAYMENT -->
+  <div class="payment-box">
+    <h4>Payment Details</h4>
+    <p><strong>Account #:</strong> <%= accountNo %></p>
+    <p><strong>A/C Name:</strong> <%= accountName %></p>
+    <p><strong>Bank:</strong> <%= BankName %></p>
+  </div>
+
+  <!-- FOOTER -->
+  <div class="footer">✨ Thank you for your business! ✨</div>
+
+</div>
+
+</body>
+</html>
