@@ -5,19 +5,21 @@ import ejs from "ejs";
 
 import Invoice from "../models/Invoice.js";
 import File from "../models/File.js";
-
 export const downloadPdfTemplate = async (req, res) => {
   try {
     const invoiceData = new Invoice(req.body);
-    await invoiceData.populate("organization", "name email address phone");
+    await invoiceData.populate("organization", "name email address phone templateName");
     await invoiceData.populate("client", "name email address phone");
     await invoiceData.populate({
       path: "items.productId",
       select: "name price",
     });
 
+     if (!invoiceData) return res.status(404).send("Invoice not found");
+    if (!invoiceData?.organization?.templateName) return res.status(404).send("Invoice template not found");
+
     const __dirname = path.resolve();
-    const templatePath = path.join(__dirname, "templates", "invoice-template.html");
+    const templatePath = path.join(__dirname, "templates", invoiceData.organization.templateName);
 
     const createdAt = new Date(invoiceData.createdAt);
     const formattedDate = `${createdAt.getMonth() + 1}/${createdAt.getDate()}/${createdAt.getFullYear()}`;
@@ -28,10 +30,18 @@ export const downloadPdfTemplate = async (req, res) => {
     );
     const taxAmount = (subtotal * invoiceData.tax) / 100;
 
+    // -----------------------------
+    //   ✅ COPY OF YOUR NEW LOGO CODE
+    // -----------------------------
     let logoUrl;
-    const invoiceLogo = await File.findOne({ organization: invoiceData.organization });
-    if (invoiceLogo?.path) {
-      logoUrl = `${process.env.VITE_API}/${invoiceLogo.path.replace(/\\/g, "/")}`;
+    const invoiceLogo = await File.findOne({
+      organization: invoiceData.organization,
+    });
+
+    if (invoiceLogo) {
+      const base64 = invoiceLogo.logo.data.toString("base64");
+      const mimeType = invoiceLogo.logo.contentType || "image/png";
+      logoUrl = `data:${mimeType};base64,${base64}`;
     } else {
       logoUrl = `${process.env.VITE_API}/uploads/dummy-logo.png`;
     }
@@ -39,6 +49,7 @@ export const downloadPdfTemplate = async (req, res) => {
     if (invoiceLogo?.companyName) {
       invoiceData.organization.name = invoiceLogo.companyName;
     }
+    // -----------------------------
 
     const htmlContent = await ejs.renderFile(templatePath, {
       logoUrl,
@@ -61,10 +72,9 @@ export const downloadPdfTemplate = async (req, res) => {
       BankName: process.env.ACCOUNT_BANK_NAME,
     });
 
-    // ----------------- UNIVERSAL BROWSER LAUNCH -----------------
+    // Puppeteer PDF code unchanged...
     let browser;
     try {
-      // try Render/serverless Chromium
       const execPath = await chromium.executablePath();
       if (execPath) {
         browser = await puppeteer.launch({
@@ -76,7 +86,6 @@ export const downloadPdfTemplate = async (req, res) => {
         throw new Error("chromium executable not found");
       }
     } catch {
-      // fallback: local Chrome path (Windows)
       const localChromePath = "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe";
       browser = await puppeteer.launch({
         headless: true,
@@ -108,6 +117,7 @@ export const downloadPdfTemplate = async (req, res) => {
     return res.status(500).json({ error: error.message });
   }
 };
+
 
 
 

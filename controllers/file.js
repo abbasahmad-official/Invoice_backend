@@ -17,11 +17,11 @@ export const create = async (req, res) => {
   return res.status(200).json({message:"empty"})
   }
 
-    if (logoFile.size > 1.5 * 1024 * 1024) {
-      return res.status(400).json({ error: "Image should be less than 1.5MB" });
+    if (logoFile.size > 1 * 1024 * 1024) {
+      return res.status(400).json({ error: "Image should be less than 1MB" });
     }
 
-    const fileData = fs.readFileSync(logoFile.path);
+    const fileData = logoFile.buffer;
 
     const orgId = req.user.role === "superAdmin" ? null : organization;
 
@@ -65,13 +65,13 @@ export const create = async (req, res) => {
     res.status(500).json({ error: error.message || "Something went wrong" });
   }
 };
-
+// 
 export const  logo = (req, res) =>{
   // console.log(req.file.logo.data)
   if(req.file.logo.data){
     res.set("Content-Type", req.file.logo.contentType);
     return res.send(req.file.logo.data)
-  }
+  } 
 }
 
 export const logoMiddleware = async (req, res, next) =>{
@@ -88,6 +88,9 @@ try {
 
     if (!file) {
       return res.status(400).json({ error: "file not found" });
+    }
+    if(!file.logo){
+       return res.status(404).json({ error: "Logo Image not found not found" });
     }
 
     req.file = file;

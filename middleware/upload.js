@@ -1,23 +1,11 @@
 import multer from "multer";
-import path from "path";
-import fs from "fs"
-import crypto from "crypto";
 
-const uploadDir = path.join(process.cwd(), "uploads")
-if(!fs.existsSync(uploadDir)){
-    fs.mkdirSync(uploadDir, {recursive: true})
-}
+// Memory storage — file is kept in RAM
+const storage = multer.memoryStorage();
 
-const storage = multer.diskStorage({
-    destination: (req, file, cb) => {
-        cb(null, "uploads/")
-    },
-    filename: (req, file, cb) => {
-        const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9)
-        cb(null,`${file.fieldname}_${uniqueSuffix}${path.extname(file.originalname)}` )
-    }
-})
+const upload = multer({
+  storage,
+  limits: { fileSize: 1 * 1024 * 1024 }, // optional: limit to 1MB
+});
 
-const upload = multer({storage})
-
-export default upload
+export default upload;
