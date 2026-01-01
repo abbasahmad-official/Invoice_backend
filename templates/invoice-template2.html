@@ -224,8 +224,8 @@ td:nth-child(4) {
           <tr  >
             <td><%= item.productId.name %></td>
             <td ><%= item.quantity %></td>
-            <td>$<%= item.price %></td>
-            <td>$<%= item.price * item.quantity %></td>
+            <td><%= currencySymbol %> <%= (item.price * currencyValue).toFixed(2) %></td>
+            <td><%= currencySymbol %> <%= ((item.price * item.quantity) * currencyValue).toFixed(2) %></td>
           </tr>
         <% }) %>
       </tbody>
@@ -235,15 +235,15 @@ td:nth-child(4) {
       <div class="subtotal-inner">
         <div class="subtotal-row">
           <span>Sub Total:</span>
-          <strong>$<%= invoiceSubtotal %></strong>
+          <strong><%= currencySymbol %> <%= invoiceSubtotal %></strong>
         </div>
         <div class="subtotal-row">
           <span>Tax (<%= invoiceTaxPercent %>%)</span>
-          <strong>$<%= invoiceTax %></strong>
+          <strong><%= currencySymbol %> <%= invoiceTax %></strong>
         </div>
         <div class="subtotal-total">
           <span>Total:</span>
-          <span>$<%= invoiceTotal %></span>
+          <span><%= currencySymbol %> <%= invoiceTotal %></span>
         </div>
       </div>
     </div>

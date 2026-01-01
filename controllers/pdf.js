@@ -6,6 +6,9 @@ import ejs from "ejs";
 import Invoice from "../models/Invoice.js";
 import File from "../models/File.js";
 export const downloadPdfTemplate = async (req, res) => {
+  const {currencyValue, currencySymbol} = req.query
+  console.log(`value:${currencyValue}, symbol:${currencySymbol}`)
+
   try {
     const invoiceData = new Invoice(req.body);
     await invoiceData.populate("organization", "name email address phone templateName");
@@ -62,14 +65,16 @@ export const downloadPdfTemplate = async (req, res) => {
       clientAddress: invoiceData.client.address,
       clientEmail: invoiceData.client.email,
       clientPhone: invoiceData.client.phone,
-      invoiceTotal: invoiceData.totalAmount,
+      invoiceTotal: (invoiceData.totalAmount * currencyValue).toFixed(2),
       invoiceItems: invoiceData.items,
-      invoiceSubtotal: subtotal,
+      invoiceSubtotal: (subtotal * currencyValue).toFixed(2),
       invoiceTaxPercent: invoiceData.tax,
-      invoiceTax: taxAmount.toFixed(2),
+      invoiceTax:( taxAmount * currencyValue).toFixed(2),
       accountNo: process.env.ACCOUNT_NO,
       accountName: process.env.ACCOUNT_NAME,
       BankName: process.env.ACCOUNT_BANK_NAME,
+      currencySymbol,
+      currencyValue
     });
 
     // Puppeteer PDF code unchanged...

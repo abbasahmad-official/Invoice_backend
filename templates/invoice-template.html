@@ -21,7 +21,7 @@ html, body { margin:0; padding:0; background: var(--bg); color: var(--navy); fon
 .invoice-wrap{ max-width:680px; margin:0 auto; background:var(--card-bg); border-radius:var(--radius); padding:var(--pad); box-sizing:border-box; overflow:visible; box-shadow:none; }
 .invoice-header{ display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:12px; background:rgb(44,44,70); padding:8px 12px; border-radius:8px; }
 .brand{ display:flex; gap:12px; align-items:center; }
-.brand .logo{ width:60px; height:60px; display:flex; align-items:center; justify-content:center; border-radius:6px; background:linear-gradient(180deg,#30414b,#24323a); padding:6px; box-sizing:border-box; }
+.brand .logo{ width:60px; height:60px; display:flex; align-items:center; justify-content:center; border-radius:6px;  padding:6px; box-sizing:border-box; }
 .brand .logo img{ max-width:100%; max-height:100%; object-fit:contain; }
 .brand .company{ font-weight:700; color:#e5e5e5; font-size:16px; }
 .invoice-badge .banner{ background:var(--accent-dark); color:#111; font-weight:700; padding:10px 18px; border-radius:6px 0 0 6px; font-size:15px; width:120px; box-shadow:0 3px 0 rgba(0,0,0,0.06); clip-path: polygon(30px 0, 100% 0, 100% 100%, 30px 100%, 0 100%); text-align:center; }
@@ -107,7 +107,7 @@ html, body { margin:0; padding:0; background: var(--bg); color: var(--navy); fon
   <!-- TOTAL DUE -->
   <div class="total-due-wrap">
     <div style="color:var(--muted);font-weight:700;font-size:14px;">TOTAL DUE</div>
-    <div class="total-due">$<%= invoiceTotal %></div>
+    <div class="total-due"><%= currencySymbol %> <%= invoiceTotal %></div>
   </div>
 
   <!-- TABLE -->
@@ -124,9 +124,9 @@ html, body { margin:0; padding:0; background: var(--bg); color: var(--navy); fon
       <% invoiceItems.forEach(item => { %>
         <tr>
           <td style="text-align: left;"><%= item.productId.name || 'Item' %></td>
-          <td class="price" style="text-align: left;">$<%= item.price %></td>
+          <td class="price" style="text-align: left;"><%= currencySymbol %> <%= (item.price * currencyValue).toFixed(2) %></td>
           <td class="qty" style="text-align: center;""><%= item.quantity %></td>
-          <td class="total">$<%= item.price * item.quantity %></td>
+          <td class="total"><%= currencySymbol %> <%= ((item.price * item.quantity) * currencyValue).toFixed(2) %></td>
         </tr>
       <% }) %>
     </tbody>
@@ -135,10 +135,10 @@ html, body { margin:0; padding:0; background: var(--bg); color: var(--navy); fon
   <!-- SUMMARY -->
   <div class="summary">
     <div class="box">
-      <div class="line"><div class="label">SUB TOTAL:</div><div class="val">$<%= invoiceSubtotal %></div></div>
-      <div class="line"><div class="label">TAX <%= invoiceTaxPercent %>%:</div><div class="val">$<%= invoiceTax %></div></div>
+      <div class="line"><div class="label">SUB TOTAL:</div><div class="val"><%= currencySymbol %> <%= invoiceSubtotal %></div></div>
+      <div class="line"><div class="label">TAX <%= invoiceTaxPercent %>%:</div><div class="val"><%= currencySymbol %> <%= invoiceTax %></div></div>
       <div class="total-line">
-        <div>TOTAL:</div><div>$<%= invoiceTotal %></div>
+        <div>TOTAL:</div><div><%= currencySymbol %> <%= invoiceTotal %></div>
       </div>
     </div>
   </div>

@@ -437,6 +437,9 @@ export const createPaymentIntent = async (req, res) => {
 
 // GET /api/invoice/template/:invoiceId
 export const getInvoiceHtml = async (req, res) => {
+  const {currencyValue, currencySymbol} = req.query
+
+  console.log(`value:${currencyValue}, symbol:${currencySymbol}`)
   try {
     const invoiceData = await Invoice.findById(req.params.invoiceId)
       .populate("organization", "name email address phone templateName")
@@ -499,14 +502,16 @@ export const getInvoiceHtml = async (req, res) => {
       clientAddress: invoiceData.client.address,
       clientEmail: invoiceData.client.email,
       clientPhone: invoiceData.client.phone,
-      invoiceTotal: invoiceData.totalAmount,
+      invoiceTotal: (invoiceData.totalAmount * currencyValue).toFixed(2),
       invoiceItems: invoiceData.items,
-      invoiceSubtotal: subtotal,
+      invoiceSubtotal: (subtotal * currencyValue).toFixed(2),
       invoiceTaxPercent: invoiceData.tax,
-      invoiceTax: taxAmount.toFixed(2),
+      invoiceTax:( taxAmount * currencyValue).toFixed(2),
       accountNo: process.env.ACCOUNT_NO,
       accountName: process.env.ACCOUNT_NAME,
       BankName: process.env.ACCOUNT_BANK_NAME,
+      currencySymbol,
+      currencyValue
     });
     // console.log(invoiceLogo.path)
     res.send(htmlContent); // 👉 sends HTML for frontend preview

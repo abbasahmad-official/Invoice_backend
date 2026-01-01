@@ -67,7 +67,7 @@
         .header {
             display: flex;
             justify-content: space-between;
-            align-items: flex-start;
+            align-items: center;
             margin-bottom: 25px;
             padding-bottom: 15px;
             border-bottom: 2px solid #eee;
@@ -178,6 +178,7 @@
         }
 
         .products-table td {
+            text-align: left;
             padding: 10px 12px;
             border-bottom: 1px solid #eee;
         }
@@ -376,6 +377,8 @@
                 width: 100%;
             }
         }
+       .invoice-title  .logo{ width:100px; height:100px; display:flex; align-items:center; justify-content:center; border-radius:6px;  padding:6px; box-sizing:border-box; ; padding-right: 20px; }
+        .invoice-title    .logo img{ max-width:100%; max-height:100%; object-fit:contain; border-radius: 20px; }
     </style>
 </head>
 <body>
@@ -393,7 +396,8 @@
                     <div class="business-type">CREATOR BUSINESS</div>
                 </div>
                 <div class="invoice-title">
-                    <h2>INVOICE</h2>
+                    <div class="logo"><img src="<%= logoUrl %>" alt="Logo"></div>
+                    <!-- <h2>INVOICE</h2> -->
                 </div>
             </div>
 
@@ -432,10 +436,10 @@
                 <tbody>
                     <% invoiceItems.forEach(item => { %>
                     <tr>
-                        <td class="item-name"><%= item.name %></td>
-                        <td class="qty"><%= item.quantity %></td>
-                        <td class="price">$<%= item.price %></td>
-                        <td class="total">$<%= (item.price * item.quantity).toFixed(2) %></td>
+                        <td class="item-name"><%= item?.productId?.name %></td>
+                        <td class="qty" ><%= item.quantity %></td>
+                        <td class="price"><%= currencySymbol %> <%= (item.price * currencyValue).toFixed(2) %></td>
+                        <td class="total"><%= currencySymbol %> <%= ((item.price * item.quantity) * currencyValue).toFixed(2) %></td>
                     </tr>
                     <% }) %>
                 </tbody>
@@ -446,15 +450,15 @@
                 <div class="summary-box">
                     <div class="summary-row">
                         <div>SUBTOTAL</div>
-                        <div>$<%= invoiceSubtotal %></div>
+                        <div><%= currencySymbol %> <%= invoiceSubtotal %></div>
                     </div>
                     <div class="summary-row">
                         <div>TAX RATE <%= invoiceTaxPercent %>%</div>
-                        <div>$<%= invoiceTax %></div>
+                        <div><%= currencySymbol %> <%= invoiceTax %></div>
                     </div>
                     <div class="summary-row">
                         <div>TOTAL</div>
-                        <div>$<%= invoiceTotal %></div>
+                        <div><%= currencySymbol %> <%= invoiceTotal %></div>
                     </div>
                 </div>
             </div>
