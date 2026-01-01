@@ -9,19 +9,21 @@ export const create = async (req, res) => {
   try {
     const { companyName, organization } = req.body;
     const logoFile = req.file;
-
+    let fileData
+    
     if (!companyName || !organization ) {
       return res.status(400).json({ error: "All fields are required" });
     }
-  if(!logoFile?.size){
-  return res.status(200).json({message:"empty"})
-  }
+  // if(!logoFile?.size){
+  // return res.status(200).json({message:"empty"})
+  // }
+    if(logoFile){
+      if (logoFile.size > 1 * 1024 * 1024) {
+        return res.status(400).json({ error: "Image should be less than 1MB" });
+      }
 
-    if (logoFile.size > 1 * 1024 * 1024) {
-      return res.status(400).json({ error: "Image should be less than 1MB" });
+      fileData = logoFile.buffer;
     }
-
-    const fileData = logoFile.buffer;
 
     const orgId = req.user.role === "superAdmin" ? null : organization;
 
@@ -40,11 +42,14 @@ export const create = async (req, res) => {
       companyName,
       organization: orgId,
       createdBy: req.user._id,
-      logo: {
+  
+    };
+     if (logoFile) {
+      updateData.logo = {
         data: fileData,
         contentType: logoFile.mimetype,
-      },
-    };
+      };
+    }
 
     const updatedFile = await File.findOneAndUpdate(
       req.user.role === "superAdmin"
